@@ -10,40 +10,29 @@ class CustomerSuccessBalancing
 
   # Returns the ID of the customer success with most customers
   def execute
-    # Remove CSMs que estão ausentes
-    @customer_success.delete_if do |cs|
+    available_cs = @customer_success.reject do |cs|
       @away_customer_success.include?(cs[:id])
     end
 
-    @customer_success = @customer_success.sort_by { |cs| cs[:score].to_i }
-    @customers.sort_by { |c| c[:score] }
+    available_cs.sort_by! { |cs| cs[:score] }
 
-    numbers_of_client = 0
-    id_cs = 0
+    customer_distribution = Hash.new(0)
 
-    array = []
-
-    @customer_success.each do |cs|
-      customers = @customers.select { |c| c[:score] <= cs[:score] }
-      @customers.delete_if { |c| customers.include?(c) }
-
-      array << {id: cs[:id], customers_count: customers.size}
+    @customers.each do |customer|
+      cs = available_cs.find { |cs| customer[:score] <= cs[:score] }
+      customer_distribution[cs[:id]] += 1 if cs
     end
-  
-    return find_customer_success_id(array)
+
+    find_customer_success_id(customer_distribution)
   end
 
-  def find_customer_success_id(array)
-    array = array.sort_by { |c| -c[:customers_count] }
-    
-    p "QQQQQQQQQQQQQQQQQQQ", array[0].dig(:customers_count)
-    p "WWWWWWWWWWWWWWWW", array[1].dig(:customers_count)
-    p "*************************************", array[0].dig(:customers_count) == array[1].dig(:customers_count)
-    if array[0].dig(:customers_count) == array[1].dig(:customers_count)
-      return 0
-    else
-      array[0].dig(:id)
-    end
+  private
+
+  def find_customer_success_id(distribution)
+    max_customers = distribution.values.max
+    top_cs = distribution.select { |_, count| count == max_customers }.keys
+
+    top_cs.size == 1 ? top_cs.first : 0
   end
 end
 
