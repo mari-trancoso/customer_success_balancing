@@ -75,7 +75,6 @@ class CustomerSuccessBalancingTests < Minitest::Test
   end
 
   def test_scenario_five
-    p "TESTEEEEEEEEEEEEEEEEEEEEEE 55555555555555"
     balancer = CustomerSuccessBalancing.new(
       build_scores([100, 2, 3, 6, 4, 5]),
       build_scores([10, 10, 10, 20, 20, 30, 30, 30, 20, 60]),
