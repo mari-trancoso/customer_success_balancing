@@ -10,7 +10,40 @@ class CustomerSuccessBalancing
 
   # Returns the ID of the customer success with most customers
   def execute
-    # Write your solution here
+    # Remove CSMs que estão ausentes
+    @customer_success.delete_if do |cs|
+      @away_customer_success.include?(cs[:id])
+    end
+
+    @customer_success = @customer_success.sort_by { |cs| cs[:score].to_i }
+    @customers.sort_by { |c| c[:score] }
+
+    numbers_of_client = 0
+    id_cs = 0
+
+    array = []
+
+    @customer_success.each do |cs|
+      customers = @customers.select { |c| c[:score] <= cs[:score] }
+      @customers.delete_if { |c| customers.include?(c) }
+
+      array << {id: cs[:id], customers_count: customers.size}
+    end
+  
+    return find_customer_success_id(array)
+  end
+
+  def find_customer_success_id(array)
+    array = array.sort_by { |c| -c[:customers_count] }
+    
+    p "QQQQQQQQQQQQQQQQQQQ", array[0].dig(:customers_count)
+    p "WWWWWWWWWWWWWWWW", array[1].dig(:customers_count)
+    p "*************************************", array[0].dig(:customers_count) == array[1].dig(:customers_count)
+    if array[0].dig(:customers_count) == array[1].dig(:customers_count)
+      return 0
+    else
+      array[0].dig(:id)
+    end
   end
 end
 
@@ -53,6 +86,7 @@ class CustomerSuccessBalancingTests < Minitest::Test
   end
 
   def test_scenario_five
+    p "TESTEEEEEEEEEEEEEEEEEEEEEE 55555555555555"
     balancer = CustomerSuccessBalancing.new(
       build_scores([100, 2, 3, 6, 4, 5]),
       build_scores([10, 10, 10, 20, 20, 30, 30, 30, 20, 60]),
